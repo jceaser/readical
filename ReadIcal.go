@@ -391,11 +391,14 @@ func dateStrToObj(raw string, offset int) time.Time {
 	var ans time.Time
 	if len(raw) == 8 {
         ans, _ = time.Parse("20060102", raw)
+	} else if len(raw) == 15 {
+		ans, _ = time.Parse("20060102T150405", raw)
+		ans = ans.Add(time.Hour * time.Duration(offset))
 	} else {
 		ans, _ = time.Parse("20060102T150405Z", raw)
-		if ans.IsZero() {
-			ans, _ = time.Parse("20060102T150405Z", raw)
-		}
+		//if ans.IsZero() {
+		//	ans, _ = time.Parse("20060102T150405", raw)
+		//}
 		//adjust timezone
 		ans = ans.Add(time.Hour * time.Duration(offset))
 	}
@@ -641,6 +644,7 @@ func work(reader io.Reader, today time.Time, app_data AppData) {
             dEnd := zeroOutTimeFromDate(dtEnd)
             dateBefore := dStart.AddDate(0,app_data.OutMonths,app_data.OutDays)
             dateAfter := dEnd.AddDate(0,app_data.AfterMonths,app_data.AfterDays)
+
         	/*fmt.Println(event.start, "\n",
         		dStart, "to", dEnd, "\n",
         		dateBefore, "to", dateAfter)*/
