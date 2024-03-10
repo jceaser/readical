@@ -28,6 +28,16 @@ curl this down and pipe it to readical for processing. ReadIcal will then parse 
 |  -verbose     |           | send more text to err
 |  -version     |           | Report application version information
 
+## Related tools
+
+This project is made to be use in connection with serveral others:
+
+* https://github.com/jceaser/gotools/blob/develop/md2html.go - markdown site to HTML site
+* https://github.com/jceaser/gcss - css preprocessor
+* https://github.com/jceaser/readical - event to markdown generater.
+
+Example sites: https://catonsville306.org
+
 ---
 Copyright 2024 (c) all rights reserved Thomas.Cherry@gmail.com
 License, none.
