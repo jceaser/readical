@@ -703,6 +703,8 @@ func main() {
     after_months := flag.Int("after-months",0,"months to keep event after date")
     after_days := flag.Int("after-days", 1, "days to keep event after date")
 
+	test_date := flag.Bool("test-date", false, "Run a date test")
+
     flag.Parse()
 
     app_data := InitApp(time.Now())
@@ -772,6 +774,12 @@ func main() {
         }
     }
     
+    if *test_date {
+        fmt.Printf("Now: %v\n", time.Now())
+        fmt.Println(today)
+        os.Exit(EXIT_VERSION.int())
+    }
+
     if *verbose {
         fmt.Println (app_data)
         fmt.Println (today)
