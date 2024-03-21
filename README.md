@@ -6,7 +6,7 @@ ReadIcal is a small application which reads in an ics file and outputs markdown 
 
 Publish events on google calendar and grab an ics link such as this:
 
-    https://calendar.google.com/calendar/ical/-some unique code-%40group.calendar.google.com/public/basic.ics
+    https://calendar.google.com/calendar/ical/-some_unique_code-%40group.calendar.google.com/public/basic.ics
 
 curl this down and pipe it to readical for processing. ReadIcal will then parse the file and look for events matching the time frame of interest, normally this would be one month in the future and a couple af days in the past so that the up coming events will be seen and users can still see active or just finished events. Change these settings with command line flags. Markdown can also be customized with a flag.
 

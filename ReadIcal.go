@@ -153,6 +153,10 @@ type CalEvent struct {
     summary string
     location string
     description string
+    hours float64
+    subDay bool
+    day bool
+    multiDay bool
 }
 
 /**
@@ -227,7 +231,7 @@ func valueIfExists(event *ics.VEvent, propName ics.ComponentProperty) string {
     return ""
 }
 
-/**
+/*
 convert a calender event to a CalEvent
 Not Tested
 */
@@ -238,6 +242,14 @@ func eventToCalEvent (event *ics.VEvent) CalEvent {
     location := valueIfExists(event, ics.ComponentPropertyLocation)
     description := valueIfExists(event, ics.ComponentPropertyDescription)
 
+	st := dateStrToObj(start, 0)
+	et := dateStrToObj(actualEnd, 0)
+	hours := et.Sub(st).Hours()
+
+	subDay := hours < 24
+	day := hours == 24
+	multiDay := 24 < hours
+
     if len(actualEnd)<1 {actualEnd = start}
 
     return CalEvent{start: start,
@@ -245,7 +257,11 @@ func eventToCalEvent (event *ics.VEvent) CalEvent {
         actualEnd: actualEnd,
         summary: summary,
         location: location,
-        description: description}
+        description: description,
+        hours: hours,
+        subDay: subDay,
+        day: day,
+        multiDay: multiDay}
 }
 
 /* ************************************************************************** */
@@ -326,13 +342,13 @@ func eventDayAfter(event CalEvent, offset int) bool {
     return dayAfter(start, end)
 }
 
-func dayAfter(start time.Time, end time.Time) bool {
+func dayAfter(start, end time.Time) bool {
     return start.Hour()==0 && start.Minute()==0 && start.Second()==0 &&
         end.Hour()==0 && end.Minute()==0 && end.Second()==0 &&
         start.Day()==(end.Day()-1)
 }
 
-/**
+/*
 Process one event from the ical file
 Not tested
 @param CalEvent calendar event
@@ -354,17 +370,17 @@ func handleEvent(event CalEvent, app_data AppData) string {
         }
 
         //Calculate When
-        if event.start == event.end && !eventDayAfter(event, offset) {
+        if event.day {
             // an all day event
+	        data.WhenHuman = dateStrToHumanNoTime(event.start, offset)
             data.When = dateStrToString(event.start, offset)[:10]
         } else {
             // multi day event
+		    data.WhenHuman = dateStrToHuman(event.start, offset)
             data.When=fmt.Sprintf("%s to %s",
                 dateStrToString(event.start, offset),
                 dateStrToString(event.end, offset))
         }
-        //create Human readable When
-        data.WhenHuman = dateStrToHuman(event.start, offset)
 
         buf := new(strings.Builder)
         err = temp.Execute(buf, data)
@@ -429,6 +445,17 @@ func dateStrToHuman(raw string, offset int) string {
     ans := dateStrToObj(raw, offset)
     if ans.IsZero() {return ""}
     return ans.Format("January 02, 2006: 03:04 PM")
+}
+
+/**
+Convert raw string containing an iso date to a pretty view of the data
+@return Month day, year: hour:min AM/PM
+*/
+func dateStrToHumanNoTime(raw string, offset int) string {
+    if len(raw) < 1 {return ""}
+    ans := dateStrToObj(raw, offset)
+    if ans.IsZero() {return ""}
+    return ans.Format("January 02, 2006")
 }
 
 /**
@@ -534,7 +561,6 @@ func writeFile(file string, content string) {
     d1 := []byte(content)
     err := ioutil.WriteFile(file, d1, 0644)
     if err!=nil {
-        //fmt.Printf("write " + file + " with\n" + content + "\n**************\n")
         Log.Error.Print(err.Error())
     }
 }
@@ -645,9 +671,9 @@ func work(reader io.Reader, today time.Time, app_data AppData) {
             dateBefore := dStart.AddDate(0,app_data.OutMonths,app_data.OutDays)
             dateAfter := dEnd.AddDate(0,app_data.AfterMonths,app_data.AfterDays)
 
-        	/*fmt.Println(event.start, "\n",
+			Log.Debug.Printf(event.start, "\n",
         		dStart, "to", dEnd, "\n",
-        		dateBefore, "to", dateAfter)*/
+				dateBefore, "to", dateAfter)
 
             if !betweenDates(dateBefore, today, dateAfter) {
                 continue
